@@ -101,7 +101,7 @@ class Binding(object):
         """
         raise Exception("not implemented")
 
-    def get_message(self, method, args, kwargs):
+    def get_message(self, method, args, kwargs, options=None):
         """
         Get a SOAP message for the specified method, args and SOAP headers.
 
@@ -117,7 +117,7 @@ class Binding(object):
         @rtype: L{Document}
 
         """
-        content = self.headercontent(method)
+        content = self.headercontent(method, options=options)
         header = self.header(content)
         content = self.bodycontent(method, args, kwargs)
         body = self.body(content)
@@ -312,7 +312,7 @@ class Binding(object):
         """
         raise Exception("not implemented")
 
-    def headercontent(self, method):
+    def headercontent(self, method, options=None):
         """
         Get the content for the SOAP I{Header} node.
 
@@ -322,11 +322,12 @@ class Binding(object):
         @rtype: [L{Element},...]
 
         """
+        options = options or self.options()
         content = []
-        wsse = self.options().wsse
+        wsse = options.wsse
         if wsse is not None:
             content.append(wsse.xml())
-        headers = self.options().soapheaders
+        headers = options.soapheaders
         if not isinstance(headers, (tuple, list, dict)):
             headers = (headers,)
         elif not headers:
