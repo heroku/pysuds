@@ -82,8 +82,17 @@ Installation troubleshooting:
 Release notes
 =================================================
 
-version 0.7 (development)
--------------------------
+version 0.8
+------------
+
+* Raise new ``HttpWebFault`` instead of bare ``Exception`` when client encounters invalid fault status codes.
+
+* Pass client options to binding, allowing for global `soapheaders` option to be incorporated into messages.
+
+* sax encoder always encodes ``&`` as ``&amp;``, e.g. ``&amp; => &amp;amp;``.
+
+version 0.7
+------------
 
 * Based on revision 712 (1e48fd79a1fc323006826439e469ba7b3d2b5a68) from the
   original ``suds`` Python library development project's Subversion repository.
