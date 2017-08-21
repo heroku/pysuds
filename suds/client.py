@@ -815,8 +815,7 @@ class _SoapClient:
                 return httplib.INTERNAL_SERVER_ERROR, fault
         if status != httplib.OK:
             if self.options.faults:
-                #TODO: Use a more specific exception class here.
-                raise Exception((status, description))
+                raise HttpWebFault(status, description)
             return status, description
 
         if self.options.retxml:

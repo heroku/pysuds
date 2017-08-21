@@ -288,11 +288,11 @@ def test_reply_error_with_detail_with_fault(monkeypatch):
 
     inject = dict(reply=_fault_reply__with_detail,
         status=http_client.BAD_REQUEST, description="quack-quack")
-    e = pytest.raises(Exception, client.service.f, __inject=inject).value
+    e = pytest.raises(suds.HttpWebFault, client.service.f, __inject=inject).value
     try:
-        assert e.__class__ is Exception
-        assert e.args[0][0] == http_client.BAD_REQUEST
-        assert e.args[0][1] == "quack-quack"
+        assert e.__class__ is suds.HttpWebFault
+        assert e.status_code == http_client.BAD_REQUEST
+        assert e.fault == "quack-quack"
     finally:
         del e  # explicitly break circular reference chain in Python 3
 
@@ -336,11 +336,11 @@ def test_reply_error_without_detail_with_fault(monkeypatch):
 
     inject = dict(reply=_fault_reply__with_detail,
         status=http_client.BAD_REQUEST, description="quack-quack")
-    e = pytest.raises(Exception, client.service.f, __inject=inject).value
+    e = pytest.raises(suds.HttpWebFault, client.service.f, __inject=inject).value
     try:
-        assert e.__class__ is Exception
-        assert e.args[0][0] == http_client.BAD_REQUEST
-        assert e.args[0][1] == "quack-quack"
+        assert e.__class__ is suds.HttpWebFault
+        assert e.status_code == http_client.BAD_REQUEST
+        assert e.fault == "quack-quack"
     finally:
         del e  # explicitly break circular reference chain in Python 3
 

@@ -621,10 +621,11 @@ class TestTransportUsage:
         store = MockDocumentStore(wsdl=testutils.wsdl("", operation_name="g"))
         client = suds.client.Client("suds://wsdl", documentStore=store,
             cache=None, transport=t)
-        e = pytest.raises(Exception, client.service.g).value
+        e = pytest.raises(suds.HttpWebFault, client.service.g).value
         try:
-            assert e.__class__ is Exception
-            assert e.args == ((666, "huku"),)
+            assert e.__class__ is suds.HttpWebFault
+            assert e.status_code == 666
+            assert e.fault == "huku"
         finally:
             del e  # explicitly break circular reference chain in Python 3
 

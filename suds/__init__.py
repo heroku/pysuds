@@ -64,6 +64,11 @@ class WebFault(Exception):
         self.fault = fault
         self.document = document
 
+class HttpWebFault(WebFault):
+    def __init__(self, code, reason):
+        Exception.__init__(self, u"Server returned HTTP error [%s]: '%s'" % (code, reason))
+        self.status_code = code
+        self.fault = reason
 
 #
 # Logging
