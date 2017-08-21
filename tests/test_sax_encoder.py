@@ -173,10 +173,10 @@ def test_decode(input, expected):
     # in the original suds implementation, but it makes encode/decode
     # operations asymmetric and prevents the user from actually encoding data
     # like '&amp;' that should not be interpreted as '&'.
-    ("&amp;", "&amp;"),
-    ("&lt;", "&lt;"),
-    ("&gt;", "&gt;"),
-    ("&apos;", "&apos;"),
-    ("&quot;", "&quot;")])
+    ("&amp;", "&amp;amp;"),
+    ("&lt;", "&amp;lt;"),
+    ("&gt;", "&amp;gt;"),
+    ("&apos;", "&amp;apos;"),
+    ("&quot;", "&amp;quot;")])
 def test_encode(input, expected):
     assert suds.sax.enc.Encoder().encode(input) == expected
