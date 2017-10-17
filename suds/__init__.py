@@ -59,14 +59,14 @@ class BuildError(Exception):
 class WebFault(Exception):
     def __init__(self, fault, document):
         if hasattr(fault, "faultstring"):
-            Exception.__init__(self, u"Server raised fault: '%s'" %
+            Exception.__init__(self, u"Salesforce raised fault: '%s'" %
                 (fault.faultstring,))
         self.fault = fault
         self.document = document
 
 class HttpWebFault(WebFault):
     def __init__(self, code, reason):
-        Exception.__init__(self, u"Server returned HTTP error [%s]: '%s'" % (code, reason))
+        Exception.__init__(self, u"Salesforce returned HTTP error [%s]: '%s'" % (code, reason))
         self.status_code = code
         self.fault = reason
 
