@@ -23,7 +23,6 @@ Attempts to use setuptools if available, and even attempts to install it
 automatically if it is not, downloading it from PyPI if needed. However, its
 main functionality will function just fine without setuptools as well. Having
 setuptools available provides us with the following benefits:
-  - simpler py2to3/distutils integration
   - setup.py 'egg_info' command constructing the project's metadata
   - setup.py 'develop' command deploying the project in 'development mode',
     thus making it available on sys.path, yet still editable directly in its
@@ -40,38 +39,16 @@ setuptools available provides us with the following benefits:
 """
 
 import sys
-if sys.version_info < (2, 4):
-    print("ERROR: Python 2.4+ required")
-    sys.exit(-2)
-if (3,) <= sys.version_info < (3, 1):
-    print("ERROR: Python 3.0 not supported - please use Python 3.1+ instead")
+
+if sys.version_info < (3, 2):
+    print(
+        "ERROR: Python versions less than 3.2 not supported - please use Python 3.2+ instead"
+    )
     sys.exit(-2)
 
 import os
 import os.path
 import re
-
-# Workaround for a Python issue detected with Python 3.1.3 when running our
-# pytest based 'setup.py test' command. At the end of the test run, Python
-# would report an error:
-#
-#   > Error in atexit._run_exitfuncs:
-#   > TypeError: print_exception(): Exception expected for value, str found
-#
-# Workaround found suggested by Richard Oudkerk in Python's issue tracker at:
-#   http://bugs.python.org/issue15881#msg170215
-#
-# The error is caused by two chained Python bugs:
-#  1. The multiprocessing module seems to call its global cleanup function only
-#     after all of its globals have already been released, thus raising an
-#     exception.
-#  2. atexit exception handling implementation is not prepared to handle and
-#     correctly report the exception as raised by the multiprocessing module
-#     cleanup.
-if (3,) <= sys.version_info < (3, 2):
-    import multiprocessing
-    del multiprocessing
-
 
 # -----------------------------------------------------------------------------
 # Global variables.
@@ -105,8 +82,10 @@ attempt_to_install_setuptools = True
 script_folder = os.path.realpath(os.path.dirname(__file__))
 current_folder = os.path.realpath(os.getcwd())
 if script_folder != current_folder:
-    print("ERROR: Suds library setup script needs to be run from the folder "
-        "containing it.")
+    print(
+        "ERROR: Suds library setup script needs to be run from the folder "
+        "containing it."
+    )
     print("")
     print("Current folder: %s" % current_folder)
     print("Script folder: %s" % script_folder)
@@ -120,10 +99,14 @@ if script_folder != current_folder:
 tools_folder = os.path.join(script_folder, "tools")
 sys.path.insert(0, tools_folder)
 import suds_devel
+
 sys.path.pop(0)
 
-from suds_devel.requirements import (check_Python24_pytest_requirements,
-    pytest_requirements, six_requirements)
+from suds_devel.requirements import (
+    check_Python24_pytest_requirements,
+    pytest_requirements,
+    six_requirements,
+)
 
 
 # -----------------------------------------------------------------------------
@@ -238,6 +221,7 @@ from suds_devel.requirements import (check_Python24_pytest_requirements,
 #           * Avoid the issue by never upgrading an existing setuptools
 #             installation (chosen design).
 
+
 def acquire_setuptools_setup():
     if not attempt_to_use_setuptools:
         return
@@ -252,30 +236,8 @@ def acquire_setuptools_setup():
     setup = import_setuptools_setup()
     if setup or not attempt_to_install_setuptools:
         return setup
-    if (3,) <= sys.version_info[:2] < (3, 2):
-        # Setuptools contains a test module with an explicitly specified UTF-8
-        # BOM, which is not supported by Python's py2to3 tool prior to Python
-        # 3.2 (see Python issue #7313). Setuptools can still be installed
-        # manually using its ez_setup.py installer script (it will report and
-        # ignore the error), but if we use the ez_setup.use_setuptools()
-        # programmatic setup invocation from here - it will fail.
-        #
-        # There are several things that could be done here - patches welcome if
-        # anyone actually needs them:
-        #  - the issue could be worked around by running the setuptools
-        #    installation as a separate process in this case
-        #  - warning display could be more cleanly integrated into distutils
-        #    command execution process so the warning does not get displayed
-        #    if setuptools would not actually be useful, e.g. if user just ran
-        #    our setup script with no command or with the --help option
-        print("---")
-        print("WARNING: can not install setuptools automatically using Python "
-            "3.0 & 3.1")
-        print("WARNING: if needed, install setuptools manually before running "
-            "this installation using Python prior to version 3.2")
-        print("---")
-        return
     import suds_devel.ez_setup_versioned
+
     ez_setup = suds_devel.ez_setup_versioned.import_module()
     try:
         # Since we know there is no setuptools package in the current
@@ -295,6 +257,7 @@ def acquire_setuptools_setup():
         return
     return import_setuptools_setup()
 
+
 setup = acquire_setuptools_setup()
 using_setuptools = bool(setup)
 if not using_setuptools:
@@ -305,6 +268,7 @@ if not using_setuptools:
 # -----------------------------------------------------------------------------
 # Support functions.
 # -----------------------------------------------------------------------------
+
 
 def read_python_code(filename):
     "Returns the given Python source file's compiled content."
@@ -320,6 +284,7 @@ def read_python_code(filename):
     # read operations.
     source = source.replace("\r\n", "\n").replace("\r", "\n")
     return compile(source, filename, "exec")
+
 
 def recursive_package_list(*packages):
     """
@@ -355,6 +320,7 @@ def recursive_package_list(*packages):
             todo.append((subpackage, subfolder))
     return list(result)
 
+
 # Shamelessly stolen from setuptools project's pkg_resources module.
 def safe_version(version_string):
     """
@@ -367,9 +333,10 @@ def safe_version(version_string):
     version_string = version_string.replace(" ", ".")
     return re.sub("[^A-Za-z0-9.]+", "-", version_string)
 
+
 def unicode2ascii(unicode):
     """Convert a unicode string to its approximate ASCII equivalent."""
-    return unicode.encode("ascii", 'xmlcharrefreplace').decode("ascii")
+    return unicode.encode("ascii", "xmlcharrefreplace").decode("ascii")
 
 
 # -----------------------------------------------------------------------------
@@ -416,6 +383,7 @@ exec(read_python_code(os.path.join(script_folder, "suds", "version.py")))
 # first building a temporary one to work around problems like Python 2/3
 # compatibility.
 
+
 def test_requirements():
     """
     Return test requirements for the 'test' command or an error string.
@@ -433,29 +401,7 @@ def test_requirements():
 
     include_pytest_requirements = True
 
-    if sys.version_info < (2, 5):
-        # pytest requirements can not be installed automatically by this setup
-        # script under Python 2.4.x environment. Specific pytest & py library
-        # package version combination that we found working in Python 2.4.x
-        # environments does not formally satisfy pytest requirements, and we
-        # found no way to make setuptools' test command succeed when this
-        # script installs packages that do not have all their formal
-        # requirements satisfied.
-        have_pytest, have_py = check_Python24_pytest_requirements()
-        if not have_pytest:
-            return "compatible preinstalled pytest needed prior to Python 2.5"
-        if not have_py:
-            return "compatible preinstalled py needed prior to Python 2.5"
-
-        # We must not explicitly specify pytest requirements when running the
-        # tests using a Python 2.4.x environment as the only way we found we
-        # can run our tests there is to use formally incompatible pytest & py
-        # packages. Explicitly specifying pytest requirements here would then
-        # cause setuptols to verify those requirements prior to running our
-        # test suite.
-        include_pytest_requirements = False
-
-    if ((3,) <= sys.version_info < (3, 2, 3)):
+    if (3,) <= sys.version_info < (3, 2, 3):
         # Python 3.x versions prior to Python 3.2.3 have a bug in their inspect
         # module causing inspect.getmodule() calls to fail if some module lazy
         # loads other modules when some of its attributes are accessed. For
@@ -468,6 +414,7 @@ def test_requirements():
         # setuptools installation procedure, avoids the issue.
         try:
             import py.error
+
             py.error.__attribute_access_to_force_this_module_to_lazy_load__
         except (AttributeError, ImportError):
             pass
@@ -486,6 +433,7 @@ def test_requirements():
     result.extend(six_requirements())
     return result
 
+
 test_error = None
 tests_require = test_requirements()
 if isinstance(tests_require, str):
@@ -500,34 +448,38 @@ if test_error:
     class TestCommand(distutils.cmd.Command):
         description = test_error
         user_options = []
+
         def initialize_options(self):
             pass
+
         def finalize_options(self):
             pass
+
         def run(self):
             raise distutils.errors.DistutilsPlatformError(self.description)
+
+
 else:
-    from setuptools.command.test import (normalize_path as _normalize_path,
-        test as _test)
+    from setuptools.command.test import normalize_path as _normalize_path, test as _test
 
     class TestCommand(_test):
         # Derived from setuptools.command.test.test for its
         # with_project_on_sys_path() method.
 
-        # The test build can not be done in-place with Python 3+ as it requires
-        # py2to3 conversion which we do not want modifying our original project
-        # sources.
-        if sys.version_info < (3,):
-            description = "run pytest based unit tests after an in-place build"
-        else:
-            description = "run pytest based unit tests after a build"
+        description = "run pytest based unit tests after a build"
 
         # Override base class's command-line options.
-        #TODO: pytest argument passing support could be improved if we could
+        # TODO: pytest argument passing support could be improved if we could
         # get distutils/setuptools to pass all unrecognized command-line
         # parameters to us instead of complaining about them.
-        user_options = [("pytest-args=", "a", "arguments to pass to pytest "
-            "(whitespace separated, whitespaces in arguments not supported)")]
+        user_options = [
+            (
+                "pytest-args=",
+                "a",
+                "arguments to pass to pytest "
+                "(whitespace separated, whitespaces in arguments not supported)",
+            )
+        ]
 
         def initialize_options(self):
             self.pytest_args = None
@@ -554,6 +506,7 @@ else:
 
         def run_tests(self):
             import pytest
+
             sys.exit(pytest.main(self.test_args))
 
         def _test_cmd_string(self):
@@ -562,6 +515,7 @@ else:
                 parts.append(self.pytest_args)
             return " ".join(parts)
 
+
 distutils_cmdclass["test"] = TestCommand
 
 
@@ -569,30 +523,7 @@ distutils_cmdclass["test"] = TestCommand
 # Mark the original suds project as obsolete.
 # -----------------------------------------------------------------------------
 
-if sys.version_info >= (2, 5):
-    # distutils.setup() 'obsoletes' parameter not introduced until Python 2.5.
-    extra_setup_params["obsoletes"] = ["suds"]
-
-
-# -----------------------------------------------------------------------------
-# Integrate py2to3 into our build operation.
-# -----------------------------------------------------------------------------
-
-if sys.version_info >= (3,):
-    # Integrate the py2to3 step into our build.
-    if using_setuptools:
-        extra_setup_params["use_2to3"] = True
-    else:
-        from distutils.command.build_py import build_py_2to3
-        distutils_cmdclass["build_py"] = build_py_2to3
-
-    # Teach Python's urllib lib2to3 fixer that the old urllib2.__version__ data
-    # member is now stored in the urllib.request module.
-    import lib2to3.fixes.fix_urllib
-    for x in lib2to3.fixes.fix_urllib.MAPPING["urllib2"]:
-        if x[0] == "urllib.request":
-            x[1].append("__version__")
-            break
+extra_setup_params["obsoletes"] = ["suds"]
 
 
 # -----------------------------------------------------------------------------
@@ -609,14 +540,16 @@ try:
     if not os.path.isfile(dummy_tools_file):
         f = open(dummy_tools_file, "w")
         try:
-            f.write("""\
+            f.write(
+                """\
 Dummy empty folder added as a part of a patch to silence setup.py warnings when
 determining which files belong to the project. See a related comment in the
 project's MANIFEST.in template for more detailed information.
 
 Both the folder and this file have been generated by the project's setup.py
 script and should not be placed under version control.
-""")
+"""
+            )
         finally:
             f.close()
 except EnvironmentError:
@@ -646,10 +579,14 @@ except EnvironmentError:
 #        commit fb4d2e6d393e96baac13c4efc216e361bf12c293
 
 can_not_use_non_ASCII_meta_data = (3,) <= sys.version_info < (3, 2, 2)
-if (can_not_use_non_ASCII_meta_data and using_setuptools and
-        sys.version_info[:2] == (3, 1)):
+if (
+    can_not_use_non_ASCII_meta_data
+    and using_setuptools
+    and sys.version_info[:2] == (3, 1)
+):
     from setuptools import __version__ as setuptools_version
     from pkg_resources import parse_version as pv
+
     can_not_use_non_ASCII_meta_data = pv(setuptools_version) < pv("3.5")
 
 # Wrap long_description at 72 characters since the PKG-INFO package
@@ -680,7 +617,7 @@ base_download_url = project_url + "/downloads"
 download_distribution_name = "%s-%s.tar.bz2" % (package_name, version_tag)
 download_url = "%s/%s" % (base_download_url, download_distribution_name)
 
-maintainer="Jurko Gospodnetić"
+maintainer = "Jurko Gospodnetić"
 if can_not_use_non_ASCII_meta_data:
     maintainer = unicode2ascii(maintainer)
 
@@ -693,40 +630,38 @@ setup(
     url=project_url,
     download_url=download_url,
     packages=recursive_package_list("suds"),
-
     author="Jeff Ortel",
     author_email="jortel@redhat.com",
     maintainer=maintainer,
     maintainer_email="jurko.gospodnetic@pke.hr",
-
     # See PEP-301 for the classifier specification. For a complete list of
     # available classifiers see
     # 'http://pypi.python.org/pypi?%3Aaction=list_classifiers'.
-    classifiers=["Development Status :: 5 - Production/Stable",
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: "
-            "GNU Library or Lesser General Public License (LGPL)",
+        "GNU Library or Lesser General Public License (LGPL)",
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.4",
-        "Programming Language :: Python :: 2.5",
-        "Programming Language :: Python :: 2.6",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.1",
         "Programming Language :: Python :: 3.2",
         "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4",
-        "Topic :: Internet"],
-
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Topic :: Internet",
+    ],
     # PEP-314 states that, if possible, license & platform should be specified
     # using 'classifiers'.
     license="(specified using classifiers)",
     platforms=["(specified using classifiers)"],
-
     # Register distutils command customizations.
     cmdclass=distutils_cmdclass,
-
-    **extra_setup_params)
+    **extra_setup_params
+)
