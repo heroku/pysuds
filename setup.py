@@ -460,7 +460,7 @@ if test_error:
 
 
 else:
-    from setuptools.command.test import normalize_path as _normalize_path, test as _test
+    from setuptools.command.test import test as _test
 
     class TestCommand(_test):
         # Derived from setuptools.command.test.test for its
